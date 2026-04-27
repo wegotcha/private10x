@@ -10,10 +10,12 @@ PIX_KEY = "sua-chave-pix-laranja"      # chave aleatória da conta laranja
 MERCHANT_NAME = "Riqueza Composta"
 MERCHANT_CITY = "SAO PAULO"
 AMOUNT = 97.00
+# =================================================
+
+# Rota para o QR code da criptomoeda (imagem estática "pagamento_cripto.png")
 @app.route("/qr_cripto")
 def qr_cripto():
     return send_file("pagamento_cripto.png", mimetype="image/png")
-# =================================================
 
 def gerar_crc16(payload):
     crc = 0xFFFF
@@ -38,7 +40,6 @@ def gerar_pix_payload():
 
 @app.route("/")
 def pagina():
-    # Cria o HTML na primeira execução
     if not os.path.exists("index.html"):
         html = f"""<!DOCTYPE html>
 <html>
@@ -59,6 +60,7 @@ def pagina():
         <p>Palestra exclusiva com <strong>Pablo Marçal</strong> e <strong>Pyero Tavolazzi</strong><br>
         Últimas vagas – condição especial de lançamento</p>
         <p class="price">R$ 97,00</p>
+
         <p>Pague via Pix:</p>
         <img id="qr" src="/qrcode" alt="QR Code Pix" style="width:200px; height:200px;">
         <p><small>Use o app do seu banco</small></p>
@@ -66,13 +68,29 @@ def pagina():
         <div id="msg-ok" class="hidden" style="color:#ffd700; margin-top:15px;">
             ✅ Pagamento identificado! Você receberá o link do Zoom em instantes via WhatsApp.
         </div>
+
+        <div style="margin-top: 25px;">
+            <h3>Ou pague com Criptomoeda</h3>
+            <p style="font-size: 0.8em; color: #aaa;">(Bitcoin, Monero e outras)</p>
+            <img id="qr-cripto" src="/qr_cripto" alt="QR Code para pagamento com criptomoeda" style="width:200px; height:200px; margin: 10px auto;">
+            <p style="font-size: 0.7em; color: #888;">Após o pagamento, o ingresso será enviado automaticamente.</p>
+            <button class="btn" style="background:#f7931a;" onclick="confirmarCripto()">Já paguei com Cripto</button>
+            <div id="msg-cripto-ok" class="hidden" style="color:#ffd700; margin-top:15px;">
+                ✅ Verificaremos manualmente. Você receberá o link em breve!
+            </div>
+        </div>
     </div>
     <script>
         function confirmar() {{
             document.getElementById("btn-confirm").style.display = "none";
             document.getElementById("msg-ok").classList.remove("hidden");
-            // Opcional: enviar evento de confirmação (sem armazenar dados)
             fetch("/confirmar", {{method: "POST", headers: {{"Content-Type": "application/json"}}, body: JSON.stringify({{status: "pago"}})}});
+        }}
+        function confirmarCripto() {{
+            document.getElementById("qr-cripto").style.display = "none";
+            document.querySelector("button[onclick='confirmarCripto()']").style.display = "none";
+            document.getElementById("msg-cripto-ok").classList.remove("hidden");
+            fetch("/confirmar", {{method: "POST", headers: {{"Content-Type": "application/json"}}, body: JSON.stringify({{status: "cripto"}})}});
         }}
     </script>
 </body>
@@ -92,7 +110,6 @@ def qr():
 
 @app.route("/confirmar", methods=["POST"])
 def confirmar():
-    """Apenas para simular confirmação, sem coleta de dados."""
     return {"status": "ok"}
 
 if __name__ == "__main__":
