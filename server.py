@@ -7,11 +7,11 @@ import base64
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 
-# ========== SUBSTITUA ==========
-PIX_KEY = "chave-aleatoria-da-conta-laranja"   # ex: 1a2b3c4d-...@picpay
+# ========== CONFIGURAÇÕES (ALTERE) ==========
+PIX_KEY = "chave-aleatoria-da-conta-laranja"
 MERCHANT_NAME = "10X Private Online"
 MERCHANT_CITY = "SAO PAULO"
-# ==============================
+# =============================================
 
 def gerar_crc16(payload):
     crc = 0xFFFF
@@ -78,93 +78,129 @@ HTML_INDEX = """<!DOCTYPE html>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>10X Private Online — Construa Riqueza Composta</title>
     <style>
+        :root {
+            --gold: #C9A84C;
+            --gold-light: #D4AF37;
+            --bg: #060606;
+            --card: #0D0D0D;
+            --text: #FFFFFF;
+            --text-dim: #A0A0A0;
+            --border: #1F1F1F;
+        }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            background: #0a0a0a;
-            color: #fff;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
             line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
         }
-        .container { max-width: 600px; margin: 0 auto; padding: 40px 20px; }
+        .container { max-width: 680px; margin: 0 auto; padding: 40px 20px; }
+
+        /* Logo */
+        .logo { text-align: center; margin-bottom: 36px; }
+        .logo .mark {
+            font-size: 0.8rem; letter-spacing: 3px; color: var(--gold);
+            text-transform: uppercase; margin-bottom: 4px;
+        }
+        .logo h1 { font-size: 2rem; font-weight: 700; letter-spacing: -0.5px; }
+        .logo .by { font-size: 0.75rem; color: #555; margin-top: 2px; }
+
+        /* Hero */
         .hero { text-align: center; margin-bottom: 40px; }
-        .hero h1 {
-            font-size: 2.5em;
-            background: linear-gradient(135deg, #d4af37, #f5e6b8);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 10px;
+        .hero .tag {
+            display: inline-block; background: rgba(201,168,76,0.1); color: var(--gold);
+            padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; margin-bottom: 16px;
+            border: 1px solid rgba(201,168,76,0.2);
         }
-        .hero p { color: #aaa; font-size: 1.1em; }
-        .mentores { display: flex; justify-content: center; gap: 20px; margin: 30px 0; flex-wrap: wrap; }
-        .mentor { text-align: center; flex: 1; min-width: 140px; }
-        .mentor-avatar {
-            width: 80px; height: 80px; border-radius: 50%;
-            background: #222; border: 2px solid #d4af37;
-            margin: 0 auto 10px; display: flex; align-items: center;
-            justify-content: center; font-size: 2em;
+        .hero h2 {
+            font-size: 2.2rem; line-height: 1.2; margin-bottom: 10px;
+            background: linear-gradient(135deg, #D4AF37, #F5E6B8);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
+
+        /* Urgency */
+        .urgency {
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 12px; padding: 20px 24px; margin-bottom: 32px; text-align: center;
+        }
+        .urgency p { margin-bottom: 10px; font-weight: 500; }
+        .progress {
+            background: #2A2A2A; border-radius: 10px; height: 6px; margin: 10px 0;
+        }
+        .progress-fill {
+            background: linear-gradient(90deg, var(--gold), var(--gold-light));
+            height: 100%; width: 84%; border-radius: 10px;
+        }
+        .urgency small { color: var(--text-dim); }
+
+        /* Card */
         .card {
-            background: #1a1a1a; border: 1px solid #333; border-radius: 12px;
-            padding: 30px; margin-bottom: 30px; box-shadow: 0 4px 20px rgba(212, 175, 55, 0.1);
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 16px; padding: 32px 28px; margin-bottom: 32px;
         }
-        .card h2 { color: #d4af37; margin-bottom: 15px; }
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; margin-bottom: 5px; color: #ccc; font-weight: 500; }
+        .card h3 {
+            font-size: 1.4rem; margin-bottom: 16px; color: var(--gold);
+        }
+
+        /* Form */
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; margin-bottom: 6px; font-size: 0.9rem; color: #CCC; font-weight: 500; }
         .form-group input, .form-group select {
-            width: 100%; padding: 12px; background: #111; border: 1px solid #333;
-            border-radius: 8px; color: #fff; font-size: 1em;
+            width: 100%; padding: 14px 16px; background: #111; border: 1px solid #2A2A2A;
+            border-radius: 10px; color: #FFF; font-size: 1rem; transition: 0.2s;
         }
-        .form-group input:focus, .form-group select:focus { border-color: #d4af37; outline: none; }
-        .btn {
-            display: block; width: 100%; padding: 16px;
-            background: linear-gradient(135deg, #d4af37, #c5a54b); color: #0a0a0a;
-            border: none; border-radius: 8px; font-size: 1.1em; font-weight: bold;
-            cursor: pointer; transition: 0.3s;
+        .form-group input:focus, .form-group select:focus { border-color: var(--gold); outline: none; }
+        .form-group select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23C9A84C' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 16px center; }
+
+        .btn-gold {
+            display: block; width: 100%; padding: 16px; background: linear-gradient(135deg, #C9A84C, #D4AF37);
+            color: #0A0A0A; border: none; border-radius: 10px; font-size: 1.1rem; font-weight: 700;
+            cursor: pointer; transition: 0.3s; letter-spacing: 0.3px;
         }
-        .btn:hover { background: linear-gradient(135deg, #c5a54b, #b8942e); }
-        .depoimentos { margin: 30px 0; font-size: 0.9em; color: #888; text-align: center; }
-        .depoimento { background: #111; padding: 15px; border-radius: 8px; margin-bottom: 10px; }
-        .depoimento strong { color: #d4af37; }
-        .urgencia {
-            text-align: center; background: #1a1a1a; padding: 20px;
-            border-radius: 12px; margin-bottom: 30px;
+        .btn-gold:hover { background: linear-gradient(135deg, #B8922E, #C9A84C); }
+
+        /* Depoimentos */
+        .depoimentos { margin: 32px 0; }
+        .depoimento {
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 12px; padding: 20px; margin-bottom: 12px;
         }
-        .progress-bar { background: #333; border-radius: 10px; height: 8px; margin: 10px 0; }
-        .progress-fill { background: #d4af37; height: 100%; width: 86%; border-radius: 10px; }
+        .depoimento .name { font-weight: 700; color: var(--gold); }
+        .depoimento .cargo { font-size: 0.8rem; color: #777; margin-bottom: 8px; }
+        .depoimento .text { font-size: 0.9rem; color: #BBB; font-style: italic; }
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- Logo -->
+        <div class="logo">
+            <div class="mark">10X PRIVATE ONLINE</div>
+            <h1>Construa Riqueza Composta</h1>
+            <div class="by">BY NITRO10X</div>
+        </div>
+
+        <!-- Hero -->
         <div class="hero">
-            <h1>10X Private Online</h1>
-            <p>Construa Riqueza Composta com Pyero Tavolazzi &amp; Pablo Marçal</p>
+            <div class="tag">AO VIVO · 22 E 23 DE MAIO</div>
+            <h2>O evento que transforma empresários em multiplicadores de patrimônio</h2>
         </div>
 
-        <div class="mentores">
-            <div class="mentor">
-                <div class="mentor-avatar">👤</div>
-                <strong>Pyero Tavolazzi</strong>
-                <p style="font-size:0.8em;color:#888;">Estrategista de riqueza</p>
-            </div>
-            <div class="mentor">
-                <div class="mentor-avatar">👤</div>
-                <strong>Pablo Marçal</strong>
-                <p style="font-size:0.8em;color:#888;">Mentor de negócios</p>
-            </div>
+        <!-- Urgency -->
+        <div class="urgency">
+            <p>⚠️ <strong>84% das vagas preenchidas</strong> — apenas 16% restante</p>
+            <div class="progress"><div class="progress-fill"></div></div>
+            <small>O valor aumenta automaticamente quando as vagas esgotarem</small>
         </div>
 
-        <div class="urgencia">
-            <p>⚠️ <strong>86% das vagas preenchidas</strong> — 14% restante</p>
-            <div class="progress-bar"><div class="progress-fill"></div></div>
-            <p style="font-size:0.9em;color:#d4af37;">O preço muda quando as vagas esgotarem</p>
-        </div>
-
+        <!-- Form card -->
         <div class="card">
-            <h2>Responda e descubra seu investimento</h2>
+            <h3>Descubra sua condição de acesso</h3>
+            <p style="color:#AAA; margin-bottom:20px;">Responda abaixo e veja o valor personalizado para o seu momento.</p>
             <form method="POST">
                 <div class="form-group">
                     <label>Nome completo</label>
-                    <input type="text" name="nome" required placeholder="Seu nome">
+                    <input type="text" name="nome" required placeholder="Como prefere ser chamado">
                 </div>
                 <div class="form-group">
                     <label>CPF</label>
@@ -175,33 +211,43 @@ HTML_INDEX = """<!DOCTYPE html>
                     <input type="text" name="cnpj" placeholder="00.000.000/0001-00">
                 </div>
                 <div class="form-group">
-                    <label>Nome da Empresa</label>
-                    <input type="text" name="empresa" required placeholder="Sua empresa">
+                    <label>Empresa</label>
+                    <input type="text" name="empresa" required placeholder="Nome da sua empresa">
                 </div>
                 <div class="form-group">
-                    <label>Nível de experiência com investimentos/negócios</label>
+                    <label>Em qual estágio você está?</label>
                     <select name="faturamento" required>
-                        <option value="">Selecione...</option>
-                        <option value="nunca">Nunca investi</option>
-                        <option value="iniciante">Já fiz alguns investimentos</option>
+                        <option value="">Selecione seu momento...</option>
+                        <option value="nunca">Nunca investi — quero começar</option>
+                        <option value="iniciante">Já invisto, mas sem consistência</option>
                         <option value="intermediario">Invisto regularmente</option>
                         <option value="avancado">Sou investidor experiente</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Qual sua maior dor ou desafio hoje?</label>
-                    <input type="text" name="dor" required placeholder="Ex: falta de tempo, capital parado...">
+                    <label>Qual sua maior dor financeira hoje?</label>
+                    <input type="text" name="dor" required placeholder="Ex: dinheiro parado, falta de tempo, medo de errar...">
                 </div>
-                <button type="submit" class="btn">Ver meu investimento</button>
+                <button type="submit" class="btn-gold">Ver minha condição de acesso</button>
             </form>
         </div>
 
+        <!-- Depoimentos -->
         <div class="depoimentos">
             <div class="depoimento">
-                <strong>Marcelo Costa</strong> — "De R$12M para R$60M/ano. O 10X mudou tudo."
+                <div class="name">Marco Costa</div>
+                <div class="cargo">Empresário</div>
+                <div class="text">"Em 2019, faturávamos cerca de R$12 milhões por ano. Esse ano vamos faturar mais de R$80 milhões."</div>
             </div>
             <div class="depoimento">
-                <strong>Gustavo Meres</strong> — "De R$40M para R$1 Bilhão. Isso funciona."
+                <div class="name">Gustavo Mores</div>
+                <div class="cargo">CEO · De R$40MM para R$1 Bi</div>
+                <div class="text">"Em 2025 bati no bilhão. Isso só foi possível com o método 10X."</div>
+            </div>
+            <div class="depoimento">
+                <div class="name">Sabrina Theil</div>
+                <div class="cargo">Rede de Clínicas</div>
+                <div class="text">"A nutricionista de 2019 hoje tem uma rede de clínicas. Só foi possível com o Pyero."</div>
             </div>
         </div>
     </div>
@@ -213,62 +259,73 @@ HTML_CHECKOUT = """<!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Finalizar Inscrição — 10X Private Online</title>
+    <title>Finalizar — 10X Private Online</title>
     <style>
+        :root {
+            --gold: #C9A84C; --gold-light: #D4AF37;
+            --bg: #060606; --card: #0D0D0D; --text: #FFFFFF;
+            --text-dim: #A0A0A0; --border: #1F1F1F;
+        }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            background: #0a0a0a; color: #fff; text-align: center;
-            padding: 40px 20px;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg); color: var(--text); text-align: center;
+            padding: 40px 20px; -webkit-font-smoothing: antialiased;
         }
+        .logo { margin-bottom: 28px; }
+        .logo .mark {
+            font-size: 0.75rem; letter-spacing: 3px; color: var(--gold);
+            text-transform: uppercase; margin-bottom: 2px;
+        }
+        .logo h2 { font-size: 1.5rem; font-weight: 700; }
         .card {
-            background: #1a1a1a; border: 1px solid #333; border-radius: 12px;
-            padding: 30px; max-width: 450px; margin: 0 auto;
-            box-shadow: 0 4px 20px rgba(212, 175, 55, 0.15);
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 16px; padding: 32px 24px; max-width: 480px; margin: 0 auto;
         }
-        h2 { color: #d4af37; margin-bottom: 15px; }
-        .preco {
-            font-size: 3em; color: #d4af37; margin: 20px 0; font-weight: bold;
+        .preco-container { margin: 24px 0; }
+        .preco-antigo { font-size: 1rem; color: #666; text-decoration: line-through; }
+        .preco-novo { font-size: 3.5rem; font-weight: 800; color: var(--gold); line-height: 1; }
+        .preco-novo span { font-size: 1rem; color: #AAA; font-weight: 400; }
+        .qr-box {
+            background: #FFF; border-radius: 16px; padding: 20px; display: inline-block;
+            margin: 20px 0; border: 2px solid var(--gold);
         }
-        .preco small { font-size: 0.4em; color: #888; text-decoration: line-through; }
-        .qr-container { margin: 20px auto; }
-        .qr-container img {
-            border: 2px solid #d4af37; border-radius: 12px;
-            padding: 10px; background: #fff;
-        }
-        .instrucoes { margin: 20px 0; font-size: 0.9em; color: #aaa; }
+        .qr-box img { width: 200px; height: 200px; }
+        .instrucoes { font-size: 0.9rem; color: #AAA; margin: 16px 0; }
         .btn-confirmar {
-            display: block; width: 100%; padding: 16px;
-            background: #25D366; color: #fff; border: none;
-            border-radius: 8px; font-size: 1.1em; font-weight: bold;
+            display: block; width: 100%; padding: 16px; background: #25D366; color: #FFF;
+            border: none; border-radius: 10px; font-size: 1.1rem; font-weight: 700;
             cursor: pointer; margin-top: 20px;
         }
-        .garantia { margin-top: 20px; font-size: 0.8em; color: #888; }
-        .garantia span { color: #d4af37; }
+        .garantia { margin-top: 20px; font-size: 0.8rem; color: #666; }
+        .garantia span { color: var(--gold); }
     </style>
 </head>
 <body>
+    <div class="logo">
+        <div class="mark">10X PRIVATE ONLINE</div>
+        <h2>Finalizar Inscrição</h2>
+    </div>
     <div class="card">
-        <h2>✅ Dados recebidos!</h2>
-        <p>Com base no seu perfil, seu investimento é:</p>
-        <div class="preco">
-            <small>R$197</small> R${{ preco }}
+        <p style="color:#AAA;">Condição personalizada para você:</p>
+        <div class="preco-container">
+            <div class="preco-antigo">R$ 197,00</div>
+            <div class="preco-novo">R$ {{ preco }}<span>,00</span></div>
         </div>
-        <p style="color:#aaa;">Pagamento único — acesso vitalício</p>
-        <div class="qr-container">
-            <p>Escaneie o QR Code com seu app bancário:</p>
-            <img src="data:image/png;base64,{{ qr_b64 }}" alt="QR Code Pix" width="220">
+        <p style="color:#CCC; margin-bottom:8px;">Pagamento único · Acesso vitalício</p>
+        <p style="font-size:0.8rem; color:#888;">22 e 23 de Maio de 2026 — Zoom fechado</p>
+        <div class="qr-box">
+            <img src="data:image/png;base64,{{ qr_b64 }}" alt="QR Pix">
         </div>
-        <p style="font-size:0.8em;color:#888;">Ou copie a chave: {{ PIX_KEY }}</p>
-        <button class="btn-confirmar" onclick="confirmar()">Já paguei</button>
+        <p style="font-size:0.75rem; color:#666;">Abra o app do seu banco e escaneie o código</p>
+        <button class="btn-confirmar" onclick="confirmar()">Já realizei o pagamento</button>
         <div class="garantia">
-            <p><span>Garantia de 7 dias:</span> se não gostar, devolvemos seu dinheiro.</p>
-            <p>22 e 23 de Maio de 2026 — Zoom fechado</p>
+            <p><span>Garantia Incondicional de 7 dias:</span> se não gostar, devolvemos 100% do seu dinheiro.</p>
         </div>
     </div>
     <script>
         function confirmar() {
-            alert("✅ Pagamento em verificação. Em instantes você receberá o link do Zoom por e-mail/WhatsApp.");
+            alert("✅ Recebemos sua confirmação. Em instantes você receberá o link do Zoom no WhatsApp e e-mail cadastrados.");
             fetch("/confirmar", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({status:"pago"})});
         }
     </script>
